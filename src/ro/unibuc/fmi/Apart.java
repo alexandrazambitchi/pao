@@ -6,6 +6,8 @@ public class Apart extends Imobil implements Vanzare, Inchiriere {
     private int nrCamere;
     private boolean terasa;
 
+    public Apart() {
+    }
 
     public Apart(int id, String adresa, int zona, int suprafata, double pretMp, boolean inchiriere, int etaj, int nrBai, int nrCamere, boolean terasa) {
         super(id, adresa, zona, suprafata, pretMp, inchiriere);
@@ -111,13 +113,13 @@ public class Apart extends Imobil implements Vanzare, Inchiriere {
     @Override
     public void cautarePret(double x, double y) {
         if (!isInchiriere())
-            cautarePretCump(x,y);
-        else cautarePretInch(x,y);
+            cautarePretCump(x, y);
+        else cautarePretInch(x, y);
     }
 
     @Override
     public void afisare_zona(int zona_cautata) {
-        if(getZona()==zona_cautata)
+        if (getZona() == zona_cautata)
             afisare();
     }
 

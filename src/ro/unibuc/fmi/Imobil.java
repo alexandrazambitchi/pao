@@ -17,6 +17,15 @@ public abstract class Imobil implements Comparable<Imobil> {
         this.inchiriere = inchiriere;
     }
 
+    public Imobil() {
+        id = -1;
+        adresa = "";
+        zona = 0;
+        suprafata = 0;
+        pretMp = 0;
+        inchiriere = false;
+    }
+
     public double getPretMp() {
         return pretMp;
     }

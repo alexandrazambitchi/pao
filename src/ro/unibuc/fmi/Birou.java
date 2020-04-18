@@ -4,6 +4,10 @@ public class Birou extends Imobil implements Inchiriere {
     private int nrNivele;
     private int etaj;
 
+    public Birou() {
+
+    }
+
     public Birou(int id, String adresa, int zona, int suprafata, double pretMp, boolean inchiriere, int nrNivele, int etaj) {
         super(id, adresa, zona, suprafata, pretMp, inchiriere);
         this.nrNivele = nrNivele;
@@ -23,7 +27,7 @@ public class Birou extends Imobil implements Inchiriere {
         double suma = 0;
         if (getZona() == 1) {
             if (etaj > 5)
-                suma =  getPretMp() * getSuprafata() * 1.5;
+                suma = getPretMp() * getSuprafata() * 1.5;
             else suma = getPretMp() * getSuprafata() * 1.3;
         }
         if (getZona() == 2) {
@@ -86,13 +90,13 @@ public class Birou extends Imobil implements Inchiriere {
     }
 
     public void birouriEtaje(int value) {
-        if(nrNivele>=value)
+        if (nrNivele >= value)
             afisare();
     }
 
     @Override
     public void afisare_zona(int zona_cautata) {
-        if(getZona()==zona_cautata)
+        if (getZona() == zona_cautata)
             afisare();
     }
 

@@ -6,22 +6,52 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        readFromFile();
 
+        Persistenta persistenta = Persistenta.getInstance();
         ImobilService proprietati = new ImobilService();
-        proprietati.readPropertiesFromFile();
 
-        proprietati.writePropertiesToFile();
+        Agent ag = new Agent();
+        Casa c = new Casa();
+        Apart ap = new Apart();
+        Birou bir = new Birou();
+        Depozit dep = new Depozit();
+        Teren teren = new Teren();
 
-        List<String> actiuni= new ArrayList<>();
+        BufferedReader fileAg = new BufferedReader(new FileReader("agent.csv"));
+        if (fileAg.readLine() != null) {
+            proprietati.setListaAgenti(Persistenta.citire(ag, proprietati));
+        }
+
+        BufferedReader fileCase = new BufferedReader(new FileReader("casa.csv"));
+        if (fileCase.readLine() != null) {
+            proprietati.setListaCase(Persistenta.citire(c, proprietati));
+        }
+        BufferedReader fileAp = new BufferedReader(new FileReader("apart.csv"));
+        if (fileAp.readLine() != null) {
+            proprietati.setListaApart(Persistenta.citire(ap, proprietati));
+        }
+        BufferedReader fileBirou = new BufferedReader(new FileReader("birou.csv"));
+        if (fileBirou.readLine() != null) {
+            proprietati.setListaBirouri(Persistenta.citire(bir, proprietati));
+        }
+        BufferedReader fileDep = new BufferedReader(new FileReader("depozit.csv"));
+        if (fileDep.readLine() != null) {
+            proprietati.setListaDep(Persistenta.citire(dep, proprietati));
+        }
+        BufferedReader fileTeren = new BufferedReader(new FileReader("teren.csv"));
+        if (fileTeren.readLine() != null) {
+            proprietati.setListaTeren(Persistenta.citire(teren, proprietati));
+        }
+
+        List<Agent> listaAgent = proprietati.getListaAgenti();
         List<Casa> listaCase = proprietati.getListaCase();
         List<Apart> listaApart = proprietati.getListaApart();
         List<Birou> listaBirouri = proprietati.getListaBirouri();
         List<Depozit> listaDep = proprietati.getListaDep();
-        Set<Teren> listaTeren = proprietati.getListaTeren();
+        List<Teren> listaTeren = proprietati.getListaTeren();
 
         Collections.sort(listaApart);
-
+        proprietati.readPropertiesFromFile();
         Scanner keyboard = new Scanner(System.in);
         System.out.println("1. Acces admin");
         System.out.println("2. Acces client");
@@ -29,19 +59,29 @@ public class Main {
         int input = keyboard.nextInt();
         switch (input) {
             case 1: {
-                System.out.println("1. Schimbare pret proprietati");
-                System.out.println("2. Iesire");
+                System.out.println("1. Adaugare agent");
+                System.out.println("2. Lista agenti");
+                System.out.println("3. Iesire");
                 int key;
                 do {
+                    System.out.println("Alegere: ");
                     key = keyboard.nextInt();
                     if (key == 1) {
-                        System.out.println("Introducere procent crestere/scadere pret (ex 30 pt 30%)");
-                        int value = keyboard.nextInt();
-                        proprietati.modificarePret(value);
-                        actiuni.add("Modificare pret");
+                        System.out.println("Datele noului agent: (id, nume, zona)");
+                        int idAng = keyboard.nextInt();
+                        String numeAng = keyboard.next();
+                        int zonaAng = keyboard.nextInt();
+                        proprietati.addAgent(idAng, numeAng, zonaAng);
+                        listaAgent = proprietati.getListaAgenti();
+
+                    } else if (key == 2) {
+                        for (Agent agent : listaAgent)
+                            agent.afisare();
+                        proprietati.writeAudit("Afisare agenti");
                     }
-                } while (key != 2);
+                } while (key != 3);
             }
+            break;
             case 2: {
                 String tasta;
                 System.out.println("a. Cautare proprietati dupa zona");
@@ -54,6 +94,7 @@ public class Main {
                 System.out.println("h. Depozite cu o inaltime minima");
                 System.out.println("i. Birouri cu un numar minim de etaje");
                 System.out.println("j. Terenuri cu o suprafata minima");
+                System.out.println("k. Suprafata maxima disponibila");
                 System.out.println("z. Parasire meniu");
                 do {
                     System.out.print("Introducere tasta: ");
@@ -67,22 +108,7 @@ public class Main {
                                 System.out.println("Nu s-a gasit zona");
                                 break;
                             }
-                            System.out.println("Apartamente");
-                            for (Apart apart : listaApart)
-                                apart.afisare_zona(zona_cautata);
-                            System.out.println("Case");
-                            for (Casa casa : listaCase)
-                                casa.afisare_zona(zona_cautata);
-                            System.out.println("Birouri");
-                            for (Birou birou : listaBirouri)
-                                birou.afisare_zona(zona_cautata);
-                            System.out.println("Depozite");
-                            for (Depozit dep : listaDep)
-                                dep.afisare_zona(zona_cautata);
-                            System.out.println("Terenuri");
-                            for (Imobil teren : listaTeren)
-                                teren.afisare_zona(zona_cautata);
-                            actiuni.add("Cautare dupa zona");
+                            proprietati.afisZone(zona_cautata);
                         }
                         break;
                         case "b": {
@@ -90,29 +116,14 @@ public class Main {
                             System.out.println("Pret minim-maxim (min: 400, maxim: 110001)");
                             double pretMin = keyboard.nextDouble();
                             double pretMax = keyboard.nextDouble();
-                            System.out.println("Apartamente");
-                            for (Imobil apart : listaApart)
-                                apart.cautarePret(pretMin, pretMax);
-                            System.out.println("Case");
-                            for (Imobil casa : listaCase)
-                                casa.cautarePret(pretMin, pretMax);
-                            System.out.println("Birouri");
-                            for (Imobil birou : listaBirouri)
-                                birou.cautarePret(pretMin, pretMax);
-                            System.out.println("Depozite");
-                            for (Imobil dep : listaDep)
-                                dep.cautarePret(pretMin, pretMax);
-                            System.out.println("Terenuri");
-                            for (Imobil teren : listaTeren)
-                                teren.cautarePret(pretMin, pretMax);
-                            actiuni.add("Cautari dupa buget");
+                            proprietati.cautareBuget(pretMin, pretMax);
                         }
                         break;
                         case "c": {
                             System.out.println("Afisare case care dispun si de gradina si de piscina");
                             for (Casa casa : listaCase)
                                 casa.CaseGradinasiPiscina();
-                            actiuni.add("Cautari case");
+                            proprietati.writeAudit("Cautari case");
                         }
                         break;
                         case "d": {
@@ -125,7 +136,7 @@ public class Main {
                             }
                             for (Casa casa : listaCase)
                                 casa.casaVanzZona(zona_cautata);
-                            actiuni.add("Case de vanzare");
+                            proprietati.writeAudit("Cautare case de vanzare");
                         }
                         break;
                         case "e": {
@@ -133,7 +144,7 @@ public class Main {
                             int etaj = keyboard.nextInt();
                             for (Apart apart : listaApart)
                                 apart.apartamentEtaj(etaj);
-                            actiuni.add("Cautare apartamente");
+                            proprietati.writeAudit("Cautare apartamente");
                         }
                         break;
                         case "f": {
@@ -141,19 +152,7 @@ public class Main {
                             System.out.println("Pret minim-maxim (min: 9350, max:110001)");
                             double pretMin = keyboard.nextDouble();
                             double pretMax = keyboard.nextDouble();
-                            System.out.println("Apartamente");
-                            for (Apart apart : listaApart)
-                                apart.cautarePretCump(pretMin, pretMax);
-                            System.out.println("Case");
-                            for (Casa casa : listaCase)
-                                casa.cautarePretCump(pretMin, pretMax);
-                            System.out.println("Depozite");
-                            for (Depozit dep : listaDep)
-                                dep.cautarePretCump(pretMin, pretMax);
-                            System.out.println("Terenuri");
-                            for (Imobil teren : listaTeren)
-                                teren.cautarePret(pretMin, pretMax);
-                            actiuni.add("Cautare proprietati de cumparat");
+                            proprietati.cautareCump(pretMin, pretMax);
                         }
                         break;
                         case "g": {
@@ -161,28 +160,16 @@ public class Main {
                             System.out.println("Pret minim-maxim (min: 400, max: 6702)");
                             double pretMin = keyboard.nextDouble();
                             double pretMax = keyboard.nextDouble();
-                            System.out.println("Apartamente");
-                            for (Apart apart : listaApart)
-                                apart.cautarePretInch(pretMin, pretMax);
-                            System.out.println("Case");
-                            for (Casa casa : listaCase)
-                                casa.cautarePretInch(pretMin, pretMax);
-                            System.out.println("Birouri");
-                            for (Birou birou : listaBirouri)
-                                birou.cautarePretInch(pretMin, pretMax);
-                            System.out.println("Depozite");
-                            for (Depozit dep : listaDep)
-                                dep.cautarePretInch(pretMin, pretMax);
-                            actiuni.add("Cautare proprietati de inchiriat");
+                            proprietati.cautareInch(pretMin, pretMax);
                         }
                         break;
                         case "h": {
                             System.out.println("Depozite cu o inaltime minima");
                             System.out.println("Introduceti inaltimea minima");
                             double inaltime = keyboard.nextDouble();
-                            for (Depozit dep : listaDep)
-                                dep.depozitH(inaltime);
-                            actiuni.add("Cautare depozite");
+                            for (Depozit depozit : listaDep)
+                                depozit.depozitH(inaltime);
+                            proprietati.writeAudit("Cautare depozite");
                         }
                         break;
                         case "i": {
@@ -190,15 +177,22 @@ public class Main {
                             int etaje = keyboard.nextInt();
                             for (Birou birou : listaBirouri)
                                 birou.birouriEtaje(etaje);
-                            actiuni.add("Cautare birouri");
+                            proprietati.writeAudit("Cautare birouri");
                         }
                         break;
                         case "j": {
                             System.out.println("Terenuri cu o suprafata minima");
                             int suprTeren = keyboard.nextInt();
-                            for (Teren teren : listaTeren)
-                                teren.terenMare(suprTeren);
-                            actiuni.add("Cautare terenuri");
+                            for (Teren terenuri : listaTeren)
+                                terenuri.terenMare(suprTeren);
+                            proprietati.writeAudit("Cautare terenuri");
+                        }
+                        break;
+                        case "k": {
+                            System.out.println("Suprafata maxima disponibila: ");
+                            System.out.println(proprietati.getSuprafMaxima().getSuprafata());
+                            proprietati.getDetalii();
+                            proprietati.writeAudit("Afisare suprafata maxima disponibila");
                         }
                         break;
                         case "z": {
@@ -216,22 +210,6 @@ public class Main {
             }
         }
 
-        proprietati.afisarePropr();
-        System.out.println("Suprafata maxima disponibila: ");
-        System.out.println(proprietati.getSuprafMaxima().getSuprafata());
-        proprietati.getDetalii();
-        proprietati.writeAudit(actiuni);
-    }
-
-    public static void readFromFile() throws IOException {
-        InputStreamReader inputStreamReader = new FileReader("read.txt");
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-        String currentLine;
-        while ((currentLine = bufferedReader.readLine()) != null) {
-            System.out.println("Read line: " + currentLine);
-        }
-        bufferedReader.close();
     }
 
 }

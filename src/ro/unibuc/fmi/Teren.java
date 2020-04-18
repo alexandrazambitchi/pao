@@ -2,6 +2,9 @@ package ro.unibuc.fmi;
 
 public class Teren extends Imobil implements Vanzare {
 
+    public Teren() {
+    }
+
     public Teren(int id, String adresa, int zona, int suprafata, double pretMp, boolean inchiriere) {
         super(id, adresa, zona, suprafata, pretMp, inchiriere);
     }

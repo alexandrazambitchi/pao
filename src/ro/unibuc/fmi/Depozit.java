@@ -3,6 +3,9 @@ package ro.unibuc.fmi;
 public class Depozit extends Imobil implements Vanzare, Inchiriere {
     private double inaltime;
 
+    public Depozit() {
+    }
+
     public Depozit(int id, String adresa, int zona, int suprafata, double pretMp, boolean inchiriere, double inaltime) {
         super(id, adresa, zona, suprafata, pretMp, inchiriere);
         this.inaltime = inaltime;

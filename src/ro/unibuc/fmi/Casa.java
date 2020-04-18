@@ -6,6 +6,9 @@ public class Casa extends Imobil implements Vanzare, Inchiriere {
     private boolean piscina;
     private boolean gradina;
 
+    public Casa() {
+    }
+
     public Casa(int id, String adresa, int zona, int suprafata, double pretMp, boolean inchiriere, int nrNivele, int nrCamere, boolean piscina, boolean gradina) {
         super(id, adresa, zona, suprafata, pretMp, inchiriere);
         this.nrNivele = nrNivele;
@@ -162,9 +165,9 @@ public class Casa extends Imobil implements Vanzare, Inchiriere {
     @Override
     public void cautarePret(double x, double y) {
         if (!isInchiriere())
-            if(pret()>=x && pret()<=y)
+            if (pret() >= x && pret() <= y)
                 afisare();
-        else if(pretLuna()>=x && pretLuna()<=y)
+            else if (pretLuna() >= x && pretLuna() <= y)
                 afisare();
     }
 
