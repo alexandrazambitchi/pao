@@ -1,57 +1,49 @@
 package ro.unibuc.fmi;
 
+import ro.unibuc.fmi.Entity.*;
+import ro.unibuc.fmi.model.*;
+import ro.unibuc.fmi.persistence.*;
+import ro.unibuc.fmi.repository.*;
+import ro.unibuc.fmi.service.*;
+
 import java.io.*;
 import java.util.*;
 
 public class Main {
 
+    private static final HouseService houseService = HouseService.getInstance();
+    private static final AgentDbService agentDbService = AgentDbService.getInstance();
+    private static final ApartmentDbService apartmentDbService = ApartmentDbService.getInstance();
+    private static final OfficeService officeService = OfficeService.getInstance();
+
     public static void main(String[] args) throws IOException {
 
-        Persistenta persistenta = Persistenta.getInstance();
+        PersistenceRead persistentaR = PersistenceRead.getInstance();
+        PersistenceWrite persistentaW = PersistenceWrite.getInstance();
         ImobilService proprietati = new ImobilService();
+        AuditService auditService = new AuditService();
+        ApartamentService apartamentService = new ApartamentService();
+        AgentService agentService = new AgentService();
+        BirouService birouService = new BirouService();
+        CasaService casaService = new CasaService();
+        DepozitService depozitService = new DepozitService();
+        TerenService terenService = new TerenService();
+        HouseService houseService = new HouseService();
 
-        Agent ag = new Agent();
-        Casa c = new Casa();
-        Apart ap = new Apart();
-        Birou bir = new Birou();
-        Depozit dep = new Depozit();
-        Teren teren = new Teren();
-
-        BufferedReader fileAg = new BufferedReader(new FileReader("agent.csv"));
-        if (fileAg.readLine() != null) {
-            proprietati.setListaAgenti(Persistenta.citire(ag, proprietati));
-        }
-
-        BufferedReader fileCase = new BufferedReader(new FileReader("casa.csv"));
-        if (fileCase.readLine() != null) {
-            proprietati.setListaCase(Persistenta.citire(c, proprietati));
-        }
-        BufferedReader fileAp = new BufferedReader(new FileReader("apart.csv"));
-        if (fileAp.readLine() != null) {
-            proprietati.setListaApart(Persistenta.citire(ap, proprietati));
-        }
-        BufferedReader fileBirou = new BufferedReader(new FileReader("birou.csv"));
-        if (fileBirou.readLine() != null) {
-            proprietati.setListaBirouri(Persistenta.citire(bir, proprietati));
-        }
         BufferedReader fileDep = new BufferedReader(new FileReader("depozit.csv"));
         if (fileDep.readLine() != null) {
-            proprietati.setListaDep(Persistenta.citire(dep, proprietati));
+            depozitService.setListaDep(persistentaR.citireDepozit());
         }
         BufferedReader fileTeren = new BufferedReader(new FileReader("teren.csv"));
         if (fileTeren.readLine() != null) {
-            proprietati.setListaTeren(Persistenta.citire(teren, proprietati));
+            terenService.setListaTeren(persistentaR.citireTeren());
         }
 
-        List<Agent> listaAgent = proprietati.getListaAgenti();
-        List<Casa> listaCase = proprietati.getListaCase();
-        List<Apart> listaApart = proprietati.getListaApart();
-        List<Birou> listaBirouri = proprietati.getListaBirouri();
-        List<Depozit> listaDep = proprietati.getListaDep();
-        List<Teren> listaTeren = proprietati.getListaTeren();
+        List<Depozit> listaDep = depozitService.getListaDep();
+        List<Teren> listaTeren = terenService.getListaTeren();
 
-        Collections.sort(listaApart);
         proprietati.readPropertiesFromFile();
+
         Scanner keyboard = new Scanner(System.in);
         System.out.println("1. Acces admin");
         System.out.println("2. Acces client");
@@ -59,42 +51,167 @@ public class Main {
         int input = keyboard.nextInt();
         switch (input) {
             case 1: {
-                System.out.println("1. Adaugare agent");
-                System.out.println("2. Lista agenti");
-                System.out.println("3. Iesire");
-                int key;
+                System.out.println("a. Adaugare agent");
+                System.out.println("b. Cautare agenti");
+                System.out.println("c. Modificare zona agent");
+                System.out.println("d. Stergere agent");
+                System.out.println("e. Adaugare casa");
+                System.out.println("f. Modificare pret casa");
+                System.out.println("g. Stergere casa");
+                System.out.println("h. Adaugare apartament");
+                System.out.println("i. Modificare pret apartament");
+                System.out.println("j. Stergere apartament");
+                System.out.println("k. Adaugare birou");
+                System.out.println("l. Modificare pret birou");
+                System.out.println("m. Stergere birou");
+                System.out.println("z. Iesire");
+                String key;
                 do {
                     System.out.println("Alegere: ");
-                    key = keyboard.nextInt();
-                    if (key == 1) {
-                        System.out.println("Datele noului agent: (id, nume, zona)");
-                        int idAng = keyboard.nextInt();
-                        String numeAng = keyboard.next();
-                        int zonaAng = keyboard.nextInt();
-                        proprietati.addAgent(idAng, numeAng, zonaAng);
-                        listaAgent = proprietati.getListaAgenti();
+                    key = keyboard.next();
+                    switch (key) {
+                        case "a": {
+                            System.out.println("Datele noului agent: (id, nume, zona)");
+                            int idAng = keyboard.nextInt();
+                            String numeAng = keyboard.next();
+                            int zonaAng = keyboard.nextInt();
+                            agentDbService.saveAgent(idAng, numeAng, zonaAng, new Date());
+                            auditService.writeAudit("Adaugare agent");
+                        }
+                        break;
+                        case "b": {
+                            System.out.println("Id-ul agentului cautat");
+                            int id = keyboard.nextInt();
+                            System.out.println(agentDbService.findAgent(id));
+                            auditService.writeAudit("Cautare agent");
+                        }
+                        break;
+                        case "c": {
+                            System.out.println("Noua zona a agentului si id-ul acestuia");
+                            int newZona = keyboard.nextInt();
+                            int id = keyboard.nextInt();
+                            AgentDB newAgentDb = agentDbService.findAgent(id);
+                            newAgentDb.setZonaAct(newZona);
+                            agentDbService.updateAgent(newAgentDb);
+                            auditService.writeAudit("Modificare zona agent");
+                        }
+                        break;
+                        case "d": {
+                            System.out.println("Id-ul agentului de sters");
+                            int id = keyboard.nextInt();
+                            AgentDB agentDB = agentDbService.findAgent(id);
+                            agentDbService.deleteAgent(agentDB);
+                            auditService.writeAudit("Stergere agent");
+                        }
+                        break;
+                        case "e": {
+                            System.out.println("Datele casei de adaugat (id, adresa, zona, suprafata, pret MP, nr Nivele, nr Camere");
+                            int id = keyboard.nextInt();
+                            String adresa = keyboard.next();
+                            int zona = keyboard.nextInt();
+                            int suprafata = keyboard.nextInt();
+                            double pret = keyboard.nextDouble();
+                            int nrNivele = keyboard.nextInt();
+                            int nrCamere = keyboard.nextInt();
+                            houseService.saveHouse(id, adresa, zona, suprafata, pret, nrNivele, nrCamere, new Date());
+                            auditService.writeAudit("Adaugare casa");
+                        }
+                        break;
+                        case "f": {
+                            System.out.println("Noul pret al casei si id-ul casei");
+                            double pret = keyboard.nextDouble();
+                            int id = keyboard.nextInt();
+                            House casa = houseService.findHouse(id);
+                            casa.setPretMp(pret);
+                            houseService.updateHouse(casa);
+                            auditService.writeAudit("Modificare pret casa");
+                        }break;
+                        case "g":{
+                            System.out.println("Id-ul casei de sters");
+                            int id=keyboard.nextInt();
+                            House house = houseService.findHouse(id);
+                            houseService.deleteHouse(house);
+                            auditService.writeAudit("Stergere casa");
+                        }break;
+                        case "h" :{
+                            System.out.println("Datele apartamentului de adaugat (id, adresa, zona, suprafata, pret MP, etaj, nr Bai, nr Camere");
+                            int id = keyboard.nextInt();
+                            String adresa = keyboard.next();
+                            int zona = keyboard.nextInt();
+                            int suprafata = keyboard.nextInt();
+                            double pret = keyboard.nextDouble();
+                            int etaj=keyboard.nextInt();
+                            int nrBai = keyboard.nextInt();
+                            int nrCamere = keyboard.nextInt();
+                            apartmentDbService.saveApartment(id, adresa, zona, suprafata, pret, etaj, nrBai, nrCamere, new Date());
+                            auditService.writeAudit("Adaugare apartament");
+                        }break;
+                        case "i": {
+                            System.out.println("Noul pret al apartamentului si id-ul apartamentului");
+                            double pret = keyboard.nextDouble();
+                            int id = keyboard.nextInt();
+                            ApartmentDB apartmentDB = apartmentDbService.findApartment(id);
+                            apartmentDB.setPretMp(pret);
+                            apartmentDbService.updateApartment(apartmentDB);
+                            auditService.writeAudit("Modificare pret apartament");
+                        }break;
+                        case "j":{
+                            System.out.println("Id-ul apartamentului de sters");
+                            int id=keyboard.nextInt();
+                            ApartmentDB apartmentDB = apartmentDbService.findApartment(id);
+                            apartmentDbService.deleteApartment(apartmentDB);
+                            auditService.writeAudit("Stergere apartament");
+                        }break;
+                        case "k" :{
+                            System.out.println("Datele biroului de adaugat (id, adresa, zona, suprafata, pret MP, nrNivele, etaj");
+                            int id = keyboard.nextInt();
+                            String adresa = keyboard.next();
+                            int zona = keyboard.nextInt();
+                            int suprafata = keyboard.nextInt();
+                            double pret = keyboard.nextDouble();
+                            int nrNivele=keyboard.nextInt();
+                            int etaj=keyboard.nextInt();
+                            officeService.saveOffice(id, adresa, zona, suprafata, pret,nrNivele, etaj, new Date());
+                            auditService.writeAudit("Adaugare birou");
+                        }break;
+                        case "l": {
+                            System.out.println("Noul pret al biroului si id-ul biroului");
+                            double pret = keyboard.nextDouble();
+                            int id = keyboard.nextInt();
+                            Office office = officeService.findOffice(id);
+                            office.setPretMp(pret);
+                            officeService.updateOffice(office);
+                            auditService.writeAudit("Modificare pret birou");
+                        }break;
+                        case "m":{
+                            System.out.println("Id-ul biroului de sters");
+                            int id=keyboard.nextInt();
+                            Office office = officeService.findOffice(id);
+                            officeService.deleteOffice(office);
+                            auditService.writeAudit("Stergere birou");
+                        }break;
+                        case "z": {
+                            System.out.println("Parasire meniu admin");
 
-                    } else if (key == 2) {
-                        for (Agent agent : listaAgent)
-                            agent.afisare();
-                        proprietati.writeAudit("Afisare agenti");
+                        }
+                        break;
+                        default: {
+                            System.out.println("Tasta invalida");
+                        }
+                        break;
                     }
-                } while (key != 3);
+                } while (!key.equals("z"));
             }
             break;
             case 2: {
                 String tasta;
                 System.out.println("a. Cautare proprietati dupa zona");
                 System.out.println("b. Afisare proprietati disponibile intre 2 sume");
-                System.out.println("c. Afisare case care dispun si de gradina si de piscina");
-                System.out.println("d. Case de vanzare intr-o anumita zona");
-                System.out.println("e. Apartamente care se afla cel putin la un anumit etaj");
-                System.out.println("f. Proprietati de cumparat intr-un anumit buget");
-                System.out.println("g. Proprietati de inchiriat intr-un anumit buget");
-                System.out.println("h. Depozite cu o inaltime minima");
-                System.out.println("i. Birouri cu un numar minim de etaje");
-                System.out.println("j. Terenuri cu o suprafata minima");
-                System.out.println("k. Suprafata maxima disponibila");
+                System.out.println("c. Proprietati de cumparat intr-un anumit buget");
+                System.out.println("d. Proprietati de inchiriat intr-un anumit buget");
+                System.out.println("e. Depozite cu o inaltime minima");
+                System.out.println("f. Terenuri cu o suprafata minima");
+                System.out.println("g. Suprafata maxima disponibila");
                 System.out.println("z. Parasire meniu");
                 do {
                     System.out.print("Introducere tasta: ");
@@ -120,34 +237,6 @@ public class Main {
                         }
                         break;
                         case "c": {
-                            System.out.println("Afisare case care dispun si de gradina si de piscina");
-                            for (Casa casa : listaCase)
-                                casa.CaseGradinasiPiscina();
-                            proprietati.writeAudit("Cautari case");
-                        }
-                        break;
-                        case "d": {
-                            System.out.println("Case de vanzare intr-o anumita zona");
-                            System.out.println("Zona (1/2/3)");
-                            int zona_cautata = keyboard.nextInt();
-                            if (zona_cautata != 1 && zona_cautata != 2 && zona_cautata != 3) {
-                                System.out.println("Nu s-a gasit zona");
-                                break;
-                            }
-                            for (Casa casa : listaCase)
-                                casa.casaVanzZona(zona_cautata);
-                            proprietati.writeAudit("Cautare case de vanzare");
-                        }
-                        break;
-                        case "e": {
-                            System.out.println("Apartamente care se afla cel putin la un anumit etaj");
-                            int etaj = keyboard.nextInt();
-                            for (Apart apart : listaApart)
-                                apart.apartamentEtaj(etaj);
-                            proprietati.writeAudit("Cautare apartamente");
-                        }
-                        break;
-                        case "f": {
                             System.out.println("Proprietati de cumparat intr-un anumit buget");
                             System.out.println("Pret minim-maxim (min: 9350, max:110001)");
                             double pretMin = keyboard.nextDouble();
@@ -155,7 +244,7 @@ public class Main {
                             proprietati.cautareCump(pretMin, pretMax);
                         }
                         break;
-                        case "g": {
+                        case "d": {
                             System.out.println("Proprietati de inchiriat intr-un anumit buget");
                             System.out.println("Pret minim-maxim (min: 400, max: 6702)");
                             double pretMin = keyboard.nextDouble();
@@ -163,36 +252,28 @@ public class Main {
                             proprietati.cautareInch(pretMin, pretMax);
                         }
                         break;
-                        case "h": {
+                        case "e": {
                             System.out.println("Depozite cu o inaltime minima");
                             System.out.println("Introduceti inaltimea minima");
                             double inaltime = keyboard.nextDouble();
                             for (Depozit depozit : listaDep)
                                 depozit.depozitH(inaltime);
-                            proprietati.writeAudit("Cautare depozite");
+                            auditService.writeAudit("Cautare depozite");
                         }
                         break;
-                        case "i": {
-                            System.out.println("Birouri cu un numar minim de etaje");
-                            int etaje = keyboard.nextInt();
-                            for (Birou birou : listaBirouri)
-                                birou.birouriEtaje(etaje);
-                            proprietati.writeAudit("Cautare birouri");
-                        }
-                        break;
-                        case "j": {
+                        case "f": {
                             System.out.println("Terenuri cu o suprafata minima");
                             int suprTeren = keyboard.nextInt();
                             for (Teren terenuri : listaTeren)
                                 terenuri.terenMare(suprTeren);
-                            proprietati.writeAudit("Cautare terenuri");
+                            auditService.writeAudit("Cautare terenuri");
                         }
                         break;
-                        case "k": {
+                        case "g": {
                             System.out.println("Suprafata maxima disponibila: ");
                             System.out.println(proprietati.getSuprafMaxima().getSuprafata());
                             proprietati.getDetalii();
-                            proprietati.writeAudit("Afisare suprafata maxima disponibila");
+                            auditService.writeAudit("Afisare suprafata maxima disponibila");
                         }
                         break;
                         case "z": {
@@ -209,7 +290,5 @@ public class Main {
                 } while (!tasta.equals("z"));
             }
         }
-
     }
-
 }
